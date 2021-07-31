@@ -168,7 +168,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"requesterId\": 1,\r\n    \"shareSymbol\": \"HCI\",\r\n    \"quantity\": 150,\r\n    \"price\": 15\r\n}",
+					"raw": "{\r\n    \"requesterId\": 2,\r\n    \"shareSymbol\": \"HCI\",\r\n    \"quantity\": 150,\r\n    \"price\": 10\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -219,9 +219,33 @@
 		{
 			"name": "update trade request price",
 			"request": {
-				"method": "GET",
+				"method": "PUT",
 				"header": [],
-				"url": null
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"price\": 10\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:3000/trade/update/5",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"trade",
+						"update",
+						"5"
+					]
+				}
 			},
 			"response": []
 		},
@@ -253,7 +277,21 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": null
+				"url": {
+					"raw": "http://127.0.0.1:3000/trade/board",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "3000",
+					"path": [
+						"trade",
+						"board"
+					]
+				}
 			},
 			"response": []
 		}
