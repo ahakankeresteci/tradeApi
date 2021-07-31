@@ -8,7 +8,8 @@ module.exports = {
         dialect: 'mysql',
         modelsDirection: 'db/models/',
         relationDirection: 'db/relations',
-        mockDataMigrationDirection: 'db/mockDataMigration'
+        mockDataMigrationDirection: 'db/mockDataMigration',
+        forceDbMigration: true
     },
     port: 3000
 };

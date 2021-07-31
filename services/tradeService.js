@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const moment = require('moment')
-const { Op } = require('sequelize');
+const sequelize = require('sequelize');
+const { Op } = sequelize;
 const { tradeTypes } = require('../constants');
 const { requesterTypes } = require('../constants');
 module.exports = () => {
@@ -75,6 +76,7 @@ module.exports = () => {
         const cost = tradeOpt.quantity * tradeOpt.price;
         await checkPortfolioExist(tradeOpt.requesterId, cost);
         let result;
+        let status;
         const buyNow = await getAvailableRequest(tradeOpt, tradeTypes.sell);
         if(buyNow.length != 0) {
             const theSellRequest = _.maxBy(buyNow, ['price'])
@@ -121,26 +123,28 @@ module.exports = () => {
                 })
             );
             result = await Promise.all(transactions);
+            status = 'Purchased';
         }
         else {
             result = await tradeModel.create(tradeOpt);
+            status = 'PendingPurchase';
         }
         try {
             
         } catch (error) {
             throw error;
         }
-        return result;
+        return {status,result};
     };
 
-    tradeService.updateTradeRequest = async (data) => {
+    tradeService.updateTradeRequest = async (id, data) => {
         const opt = _.clone(data);
         try {
-            const tradeRequest = await tradeModel.findByPk(opt.id);
-            if(moment(tradeRequest.updatedAt).add(1,'hours').isBefore(moment())){
-                throw new Error('Price cannot be updated.');
+            const tradeRequest = await tradeModel.findByPk(id);
+            if(moment(tradeRequest.updatedAt).add(1,'hours').isAfter(moment())){
+                throw new Error(`Price cannot be updated. ${moment(moment(tradeRequest.updatedAt).add(59,'minutes').diff(moment())).format('mm')} minutes left.`);
             }
-            const result = await tradeModel.update({ price: opt.price },{ where: { id: opt.id }});
+            const result = await tradeModel.update({ price: opt.price },{ where: { id }});
             return result;
         } catch (error) {
             throw error;
@@ -148,15 +152,46 @@ module.exports = () => {
     };
 
     tradeService.deleteTradeRequest = async (id) => {
+        let deletedTradeReq;
         try {
-            const deletedTradeReq = await tradeModel.destroy({ where: { id }})
-            return deletedTradeReq;
+            deletedTradeReq = await tradeModel.destroy({ where: { id }});
         } catch (error) {
             throw error;
         }
+        return deletedTradeReq;
     };
 
-    tradeService.getBoard = async () => {};
+    tradeService.getBoard = async () => {
+        let sale = {};
+        let buy = {};
+        try {
+            sale = await tradeModel.findAll({
+                attributes: [sequelize.fn('min', sequelize.col('price')),'shareSymbol'],
+                where: {
+                    transactionType: tradeTypes.sell,
+                    quantity: {
+                        [Op.gt]: 0
+                    }
+                },
+                group: ['share_symbol'],
+                raw: true
+            });
+            buy = await tradeModel.findAll({
+                attributes: [sequelize.fn('max', sequelize.col('price')),'shareSymbol'],
+                where: {
+                    transactionType: tradeTypes.buy,
+                    quantity: {
+                        [Op.gt]: 0
+                    }
+                },
+                group: ['share_symbol'],
+                raw: true
+            });
+        } catch (error) {
+            throw error;
+        }
+        return {sale, buy};
+    };
 
     tradeService.getTransactions = async () => {
         try {

@@ -6,7 +6,7 @@ router.post('/',async (req, res) => {
     try {
         result = await companyService().bulkCreateCompany(req.body.companies);
     } catch (error) {
-        return res.status(400).send(error);
+        return res.status(400).send(error.message);
     }
         return res.status(200).send(result);
 });

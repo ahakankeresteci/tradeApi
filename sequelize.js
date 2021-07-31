@@ -28,8 +28,10 @@ module.exports.start = async (config) => {
     importModels(config.modelsDirection);
     dbmodels = database.models;
     require(`${__dirname}/${config.relationDirection}`)(database.models);
-    await database.sync({force: true});
-    await require(`${__dirname}/${config.mockDataMigrationDirection}`)(database.models);
+    if(config.forceDbMigration){
+      await database.sync({force: true});
+      await require(`${__dirname}/${config.mockDataMigrationDirection}`)(database.models);
+    }
 };
 
 module.exports.models = () => dbmodels;
